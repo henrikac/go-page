@@ -150,3 +150,121 @@ func TestWriteInvalidFormat(t *testing.T) {
 		t.Fatal("Expected error if unsupported format")
 	}
 }
+
+// ##########
+// Read tests
+// ##########
+
+func TestReadFilenameIsRequired(t *testing.T) {
+	if err := Read("", nil); err == nil {
+		t.Fatal("Expected an error if filename is missing")
+	}
+}
+
+func TestReadDataCorrectly(t *testing.T) {
+	dir, err := os.MkdirTemp("", "go-page")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	tests := []struct {
+		Filename string
+		Format   string
+		Input    testGroup
+	}{
+		{
+			Filename: "data.json",
+			Format:   JSON,
+			Input:    testGroup{},
+		},
+		{
+			Filename: "data.json",
+			Format:   JSON,
+			Input: testGroup{
+				GroupName: "TheGophers",
+			},
+		},
+		{
+			Filename: "data.json",
+			Format:   JSON,
+			Input: testGroup{
+				GroupName: "TheGophers",
+				Members: []testPerson{
+					{Name: "Alice", Age: 72},
+					{Name: "Bob", Age: 31},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		filename := filepath.Join(dir, test.Filename)
+
+		err = Write(filename, test.Format, test.Input)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var actual testGroup
+
+		err = Read(filename, &actual)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if test.Input.GroupName != actual.GroupName || len(test.Input.Members) != len(actual.Members) {
+			t.Fatalf("Expected: %s %v\nActual: %s %v\n",
+				test.Input.GroupName,
+				test.Input.Members,
+				actual.GroupName,
+				actual.Members,
+			)
+		}
+
+		for i, member := range test.Input.Members {
+			if member.Name != actual.Members[i].Name || member.Age != actual.Members[i].Age {
+				t.Fatalf("Expected: %s %d\nActual: %s %d\n",
+					member.Name,
+					member.Age,
+					actual.Members[i].Name,
+					actual.Members[i].Age,
+				)
+			}
+		}
+
+		os.Remove(filename)
+	}
+}
+
+func TestReadInvalidFormat(t *testing.T) {
+	dir, err := os.MkdirTemp("", "go-page")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	tests := []struct {
+		Filename string
+	}{
+		{Filename: "data"},
+		{Filename: "data."},
+		{Filename: "data.invalid"},
+	}
+
+	for _, test := range tests {
+		filename := filepath.Join(dir, test.Filename)
+
+		err = os.WriteFile(filename, []byte(""), 0666)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var tmp interface{}
+
+		err = Read(filename, &tmp)
+		if err == nil {
+			t.Fatalf("Expected the extension %s to return an error\n", filepath.Ext(test.Filename))
+		}
+	}
+}

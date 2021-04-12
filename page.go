@@ -30,7 +30,7 @@ const (
 	JSON = "JSON"
 )
 
-// Write Encodes in to the specified format and write it to file.
+// Write encodes in to the specified format and write it to file.
 // If the file does not exist, Write creates it with permissions 0666.
 // However, if the file already exist then Write will truncate it before
 // writing to it, without changing permissions.
@@ -66,6 +66,41 @@ func Write(filename, format string, in interface{}) error {
 	}
 
 	err = os.WriteFile(filename, data, 0666)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Read reads the specified file and parses the data and
+// stores the result in the value pointed to by out. The way
+// the data is parsed is based on the extension of the file.
+func Read(filename string, out interface{}) error {
+	ext := filepath.Ext(filename)
+
+	if ext != "" {
+		ext = strings.ToUpper(strings.TrimPrefix(ext, "."))
+	}
+
+	switch ext {
+	case JSON:
+	default:
+		return fmt.Errorf("%s is not a supported format\n", strings.ToLower(ext))
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	switch ext {
+	case JSON:
+		err = json.Unmarshal(data, &out)
+	default:
+		err = fmt.Errorf("%s is not a supported format\n", strings.ToLower(ext))
+	}
+
 	if err != nil {
 		return err
 	}
