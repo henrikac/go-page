@@ -72,6 +72,11 @@ func TestWriteFormat(t *testing.T) {
 			Format:   JSON,
 			Expected: filepath.Join(dir, "data.config.json"),
 		},
+		{
+			Filename: filepath.Join(dir, "data"),
+			Format:   "json",
+			Expected: filepath.Join(dir, "data.json"),
+		},
 	}
 
 	for _, test := range tests {

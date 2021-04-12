@@ -43,6 +43,7 @@ func Write(filename, format string, in interface{}) error {
 
 	if ext == "" && format != "" {
 		filename = fmt.Sprintf("%s.%s", filename, strings.ToLower(format))
+		format = strings.ToUpper(format)
 	} else if ext != "" {
 		if format == "" {
 			format = strings.ToUpper(strings.TrimPrefix(ext, "."))
