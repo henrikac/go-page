@@ -74,7 +74,12 @@ func TestWriteFormat(t *testing.T) {
 		},
 		{
 			Filename: filepath.Join(dir, "data"),
-			Format:   "json",
+			Format:   "JSON",
+			Expected: filepath.Join(dir, "data.json"),
+		},
+		{
+			Filename: filepath.Join(dir, "data.json"),
+			Format:   "JsON",
 			Expected: filepath.Join(dir, "data.json"),
 		},
 	}
@@ -150,9 +155,31 @@ func TestWriteInvalidFormat(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	err = Write(filepath.Join(dir, "data.json"), "invalidformat", struct{}{})
-	if err == nil {
-		t.Fatal("Expected error if unsupported format")
+	tests := []struct {
+		Filename     string
+		Format       string
+		ErrorMessage string
+	}{
+		{
+			Filename:     "data",
+			Format:       "",
+			ErrorMessage: "Expected an error if filename has no extension and format is undefined",
+		},
+		{
+			Filename:     "data.json",
+			Format:       "invalidformat",
+			ErrorMessage: "Expected an error if an invalid format is provided",
+		},
+	}
+
+	for _, test := range tests {
+		filename := filepath.Join(dir, test.Filename)
+		err = Write(filename, test.Format, struct{}{})
+		if err == nil {
+			t.Fatal(test.ErrorMessage)
+		}
+
+		os.Remove(filename)
 	}
 }
 
@@ -180,12 +207,12 @@ func TestReadDataCorrectly(t *testing.T) {
 	}{
 		{
 			Filename: "data.json",
-			Format:   JSON,
+			Format:   "JSON",
 			Input:    testGroup{},
 		},
 		{
 			Filename: "data.json",
-			Format:   JSON,
+			Format:   "jsOn",
 			Input: testGroup{
 				GroupName: "TheGophers",
 			},

@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	JSON = "JSON"
+	JSON = "json"
 )
 
 // Write encodes in to the specified format and write it to file.
@@ -39,16 +39,24 @@ func Write(filename, format string, in interface{}) error {
 		return errors.New("filename is undefined")
 	}
 
+	// normalizing format
+	if format != "" {
+		format = strings.ToLower(format)
+	}
+
 	ext := filepath.Ext(filename)
 
-	if ext == "" && format != "" {
-		filename = fmt.Sprintf("%s.%s", filename, strings.ToLower(format))
-		format = strings.ToUpper(format)
-	} else if ext != "" {
+	if ext == "" {
+		if format != "" {
+			filename = fmt.Sprintf("%s.%s", filename, format)
+		} else {
+			return errors.New("Cannot determine format")
+		}
+	} else {
 		if format == "" {
-			format = strings.ToUpper(strings.TrimPrefix(ext, "."))
-		} else if format != strings.ToUpper(strings.TrimPrefix(ext, ".")) {
-			filename = fmt.Sprintf("%s.%s", filename, strings.ToLower(format))
+			format = strings.TrimPrefix(ext, ".")
+		} else if format != strings.TrimPrefix(ext, ".") {
+			filename = fmt.Sprintf("%s.%s", filename, format)
 		}
 	}
 
@@ -59,7 +67,7 @@ func Write(filename, format string, in interface{}) error {
 	case JSON:
 		data, err = json.Marshal(in)
 	default:
-		err = fmt.Errorf("%s is not a supported format\n", strings.ToLower(format))
+		err = fmt.Errorf("%s is not a supported format\n", format)
 	}
 
 	if err != nil {
@@ -80,14 +88,16 @@ func Write(filename, format string, in interface{}) error {
 func Read(filename string, out interface{}) error {
 	ext := filepath.Ext(filename)
 
+	// normalizing extension/format
 	if ext != "" {
-		ext = strings.ToUpper(strings.TrimPrefix(ext, "."))
+		ext = strings.ToLower(strings.TrimPrefix(ext, "."))
 	}
 
+	// no need to open and read file if unsupported format
 	switch ext {
 	case JSON:
 	default:
-		return fmt.Errorf("%s is not a supported format\n", strings.ToLower(ext))
+		return fmt.Errorf("%s is not a supported format\n", ext)
 	}
 
 	data, err := os.ReadFile(filename)
@@ -99,7 +109,7 @@ func Read(filename string, out interface{}) error {
 	case JSON:
 		err = json.Unmarshal(data, &out)
 	default:
-		err = fmt.Errorf("%s is not a supported format\n", strings.ToLower(ext))
+		err = fmt.Errorf("%s is not a supported format\n", ext)
 	}
 
 	if err != nil {
