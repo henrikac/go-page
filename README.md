@@ -4,7 +4,7 @@ go-page is a collection of functions that makes it easy to store/retrieve data t
 
 ## Supported formats
 + [X] JSON
-+ [ ] YAML
++ [X] YAML
 + [ ] CSV
 + [ ] XML
 
@@ -30,14 +30,14 @@ group := Group{
 	}
 }
 
-err := page.Write("data.json", "json", group)
+err := page.WriteJSON("data.json", group)
 if err != nil {
 	// handle error
 }
 
 var readGroup Group
 
-err = page.Read("data.json", &readGroup)
+err = page.ReadJSON("data.json", &readGroup)
 if err != nil {
 	// handle error
 }
