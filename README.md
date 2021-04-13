@@ -5,8 +5,7 @@ go-page is a collection of functions that makes it easy to store/retrieve data t
 ## Supported formats
 + [X] JSON
 + [X] YAML
-+ [ ] CSV
-+ [ ] XML
++ [X] XML
 
 ## Example
 ```golang
@@ -27,7 +26,7 @@ group := Group{
 	Members: []Person{
 		{Name: "Alice", Age: 19},
 		{Name: "Bob", Age: 19},
-	}
+	},
 }
 
 err := page.WriteJSON("data.json", group)
